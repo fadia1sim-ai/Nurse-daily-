@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>היום שלי – מרפאת סוכרת</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F7F9FC; --ink: #141C24; --muted: #7A8A99;
+  --teal: #0B7B6E; --teal-pale: #E4F3F1;
+  --amber: #D97706; --amber-pale: #FEF3C7;
+  --green: #15803D; --green-pale: #DCFCE7;
+  --border: #E2E8F0; --card: #FFFFFF;
+}
+body { font-family: 'Assistant', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; padding-bottom: 40px; }
+
+.banner { background: var(--teal); padding: 20px 24px 16px; color: white; }
+.banner-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+.banner h1 { font-size: 1.25rem; font-weight: 800; }
+.banner .date { font-size: 0.82rem; opacity: 0.75; margin-top: 2px; }
+.time-chip { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 5px 14px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.settings-btn { cursor: pointer; border: none; background: rgba(255,255,255,0.25); font-family: Assistant,sans-serif; font-weight: 700; border-radius: 20px; padding: 5px 14px; font-size: 0.82rem; color: white; }
+
+.settings-panel { display: none; background: #fff; border-bottom: 2px solid #E2E8F0; padding: 18px 24px; }
+.settings-inner { max-width: 680px; margin: 0 auto; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end; }
+.field label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; }
+.field input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-family: Assistant,sans-serif; font-size: 0.9rem; outline: none; }
+.save-btn { margin-top: 12px; background: var(--teal); color: white; border: none; border-radius: 8px; padding: 9px 22px; font-family: Assistant,sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+
+.reminder { margin: 0 16px; border-radius: 0 0 14px 14px; padding: 14px 18px; font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.reminder.morning { background: var(--amber-pale); color: var(--amber); }
+.reminder.evening { background: var(--teal-pale); color: var(--teal); }
+.reminder .icon { font-size: 1.4rem; flex-shrink: 0; }
+.reminder-text strong { display: block; }
+.reminder-text span { font-weight: 400; font-size: 0.83rem; opacity: 0.85; }
+
+.main { max-width: 680px; margin: 0 auto; padding: 20px 16px; }
+.section-title { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+
+.counters-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.counter-card { background: var(--card); border-radius: 16px; padding: 18px 14px 14px; text-align: center; border: 2px solid var(--border); transition: border-color 0.2s; position: relative; }
+.counter-card.active { border-color: var(--teal); }
+.counter-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.counter-emoji { font-size: 1.5rem; margin-bottom: 6px; display: block; }
+.counter-num { font-size: 2.6rem; font-weight: 800; line-height: 1; color: var(--ink); transition: color 0.2s; }
+.counter-card.active .counter-num { color: var(--teal); }
+.counter-goal { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+.counter-btns { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+.c-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all 0.15s; color: var(--ink); }
+.c-btn.plus { border-color: var(--teal); color: var(--teal); }
+.c-btn.plus:hover { background: var(--teal); color: white; }
+.c-btn.minus:hover { background: var(--border); }
+.goal-ring { position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; }
+
+.monthly-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.monthly-card { background: var(--card); border-radius: 16px; padding: 16px 18px; border: 2px solid var(--border); }
+.monthly-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.monthly-nums { display: flex; align-items: baseline; gap: 6px; }
+.monthly-num { font-size: 2rem; font-weight: 800; }
+.monthly-goal-text { font-size: 0.85rem; color: var(--muted); }
+.prog-wrap { background: var(--border); border-radius: 99px; height: 6px; margin-top: 10px; }
+.prog-bar { height: 6px; border-radius: 99px; width: 0%; transition: width 0.4s; }
+
+.tomorrow-card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 20px; border: 2px solid var(--border); }
+.tomorrow-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 14px; }
+.input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.type-select { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px; font-family: Assistant,sans-serif; font-size: 0.88rem; color: var(--ink); background: var(--bg); outline: none; }
+.appt-input { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-family: Assistant,sans-serif; font-size: 0.9rem; color: var(--ink); outline: none; }
+.add-btn { background: var(--teal); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-family: Assistant,sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.appt-list { list-style: none; }
+.appt-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.88rem; gap: 8px; }
+.appt-item.foot { background: var(--teal-pale); color: var(--teal); }
+.appt-item.urine { background: var(--amber-pale); color: var(--amber); }
+.appt-tag { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: rgba(0,0,0,0.08); white-space: nowrap; }
+.appt-name { flex: 1; font-weight: 600; }
+.del-btn { background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.5; }
+.empty-appt { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 16px 0 4px; }
+
+.history-card { background: var(--card); border-radius: 16px; padding: 18px; border: 2px solid var(--border); }
+.history-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.history-row:last-child { border-bottom: none; }
+.history-date { color: var(--muted); font-size: 0.8rem; min-width: 80px; }
+.history-nums { display: flex; gap: 10px; }
+.h-num { font-size: 0.8rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.h-foot { background: var(--teal-pale); color: var(--teal); }
+.h-urine { background: var(--amber-pale); color: var(--amber); }
+.no-history { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 20px 0; }
+
+.end-day-btn { width: 100%; background: var(--ink); color: white; border: none; border-radius: 12px; padding: 14px; font-family: Assistant,sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; }
+
+/* Setup screen */
+.setup-screen { position: fixed; inset: 0; background: var(--teal); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+.setup-box { background: white; border-radius: 20px; padding: 32px 28px; max-width: 400px; width: 100%; text-align: center; }
+.setup-box h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; color: var(--teal); }
+.setup-box p { font-size: 0.88rem; color: var(--muted); margin-bottom: 24px; }
+.setup-box input { width: 100%; border: 2px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: Assistant,sans-serif; font-size: 1rem; outline: none; margin-bottom: 12px; text-align: right; }
+.setup-box input:focus { border-color: var(--teal); }
+.setup-start { width: 100%; background: var(--teal); color: white; border: none; border-radius: 10px; padding: 13px; font-family: Assistant,sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; transition: transform 0.3s ease; z-index: 9999; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.sync-status { font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Setup screen (first time) -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-box">
+    <h2>👋 ברוכה הבאה!</h2>
+    <p>הכניסי את שם המרפאה שלך כדי להתחיל לעקוב</p>
+    <input type="text" id="setupClinic" placeholder="למשל: מרפאת איתנים" />
+    <input type="number" id="setupGoalFoot" placeholder="יעד חודשי – כף רגל (למשל 40)" min="1" />
+    <input type="number" id="setupGoalUrine" placeholder="יעד חודשי – מיקרואלבומין (למשל 40)" min="1" />
+    <button class="setup-start" onclick="finishSetup()">התחילי ←</button>
+  </div>
+</div>
+
+<div class="banner">
+  <div class="banner-top">
+    <div>
+      <h1 id="clinicTitle">היום שלי</h1>
+      <div class="date" id="dateDisplay"></div>
+      <div class="sync-status" id="syncStatus">מסנכרן...</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div class="time-chip" id="timeClock"></div>
+      <button class="settings-btn" onclick="toggleSettings()">⚙️ הגדרות</button>
+    </div>
+  </div>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-inner">
+    <div class="section-title" style="margin-bottom:12px;">הגדרות מרפאה</div>
+    <div class="settings-grid">
+      <div class="field"><label>שם המרפאה</label><input type="text" id="clinicName" placeholder="מרפאת איתנים"></div>
+      <div class="field"><label>יעד חודשי – כף רגל</label><input type="number" id="monthlyFoot" placeholder="40" min="1"></div>
+      <div class="field"><label>יעד חודשי – מיקרואלבומין</label><input type="number" id="monthlyUrine" placeholder="40" min="1"></div>
+    </div>
+    <button class="save-btn" onclick="saveSettings()">שמור הגדרות</button>
+  </div>
+</div>
+
+<div class="reminder" id="reminderBanner">
+  <div class="icon" id="reminderIcon"></div>
+  <div class="reminder-text">
+    <strong id="reminderTitle"></strong>
+    <span id="reminderSub"></span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="section-title">כמה ביצעתי היום</div>
+  <div class="counters-grid">
+    <div class="counter-card" id="card-foot">
+      <div class="goal-ring" id="ring-foot"></div>
+      <span class="counter-emoji">🦶</span>
+      <div class="counter-label">כף רגל</div>
+      <div class="counter-num" id="num-foot">0</div>
+      <div class="counter-goal">יעד יומי: <span id="goal-foot">5</span></div>
+      <div class="counter-btns">
+        <button class="c-btn minus" onclick="change('foot',-1)">−</button>
+        <button class="c-btn plus" onclick="change('foot',1)">+</button>
+      </div>
+    </div>
+    <div class="counter-card" id="card-urine">
+      <div class="goal-ring" id="ring-urine"></div>
+      <span class="counter-emoji">🧪</span>
+      <div class="counter-label">מיקרואלבומין</div>
+      <div class="counter-num" id="num-urine">0</div>
+      <div class="counter-goal">יעד יומי: <span id="goal-urine">5</span></div>
+      <div class="counter-btns">
+        <button class="c-btn minus" onclick="change('urine',-1)">−</button>
+        <button class="c-btn plus" onclick="change('urine',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">התקדמות חודשית</div>
+  <div class="monthly-grid">
+    <div class="monthly-card">
+      <div class="monthly-label">🦶 כף רגל החודש</div>
+      <div class="monthly-nums">
+        <span class="monthly-num" id="monthFootNum" style="color:var(--teal)">0</span>
+        <span class="monthly-goal-text">/ <span id="monthFootGoal">–</span></span>
+      </div>
+      <div class="prog-wrap"><div class="prog-bar" id="monthFootBar" style="background:var(--teal)"></div></div>
+    </div>
+    <div class="monthly-card">
+      <div class="monthly-label">🧪 מיקרואלבומין החודש</div>
+      <div class="monthly-nums">
+        <span class="monthly-num" id="monthUrineNum" style="color:var(--amber)">0</span>
+        <span class="monthly-goal-text">/ <span id="monthUrineGoal">–</span></span>
+      </div>
+      <div class="prog-wrap"><div class="prog-bar" id="monthUrineBar" style="background:var(--amber)"></div></div>
+    </div>
+  </div>
+
+  <div class="section-title">תזמון לבדיקות מחר</div>
+  <div class="tomorrow-card">
+    <h3>📅 מי מגיע מחר – מה לבדוק</h3>
+    <div class="input-row">
+      <select class="type-select" id="apptType">
+        <option value="foot">🦶 כף רגל</option>
+        <option value="urine">🧪 מיקרואלבומין</option>
+      </select>
+      <input class="appt-input" id="apptName" type="text" placeholder="הערה (אופציונלי)">
+      <button class="add-btn" onclick="addAppt()">+ הוסף</button>
+    </div>
+    <ul class="appt-list" id="apptList"></ul>
+  </div>
+
+  <div class="section-title">היסטוריה – 7 ימים אחרונים</div>
+  <div class="history-card">
+    <div id="historyList"></div>
+  </div>
+
+  <button class="end-day-btn" onclick="endDay()">✔ סיום יום – שמור ושלח נתונים</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+// Shared storage via JSONBin (free, no login needed for reading)
+// Each clinic saves to a shared "clinic report" key
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b';
+const JSONBIN_KEY = '$2a$10$placeholder'; // will use public bin
+
+const TODAY = new Date().toLocaleDateString('he-IL', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const TODAY_KEY = new Date().toISOString().slice(0,10);
+const MONTH_KEY = new Date().toISOString().slice(0,7);
+
+document.getElementById('dateDisplay').textContent = TODAY;
+
+// ── CLOCK ──
+function updateClock() {
+  document.getElementById('timeClock').textContent =
+    new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ── REMINDER ──
+function setReminder() {
+  const h = new Date().getHours();
+  const banner = document.getElementById('reminderBanner');
+  const icon = document.getElementById('reminderIcon');
+  const title = document.getElementById('reminderTitle');
+  const sub = document.getElementById('reminderSub');
+  if (h >= 7 && h < 11) {
+    banner.className = 'reminder morning'; icon.textContent = '☀️';
+    title.textContent = 'בוקר טוב! נתחיל חזק היום';
+    sub.textContent = 'לכל מטופל סוכרת – בדקי אם עשה כף רגל ומיקרואלבומין השנה';
+  } else if (h >= 11 && h < 14) {
+    banner.className = 'reminder morning'; icon.textContent = '⏰';
+    title.textContent = 'אמצע היום – איך אנחנו עומדות?';
+    sub.textContent = 'עוד מטופלים יגיעו – סמני בדיקות שבוצעו';
+  } else {
+    banner.className = 'reminder evening'; icon.textContent = '🌙';
+    title.textContent = 'לקראת סוף היום';
+    sub.textContent = 'סכמי את הכמויות ותזמני בדיקות למחר לפני שיוצאות';
+  }
+}
+setReminder();
+
+// ── STATE ──
+let settings = JSON.parse(localStorage.getItem('dm_settings') || '{}');
+let state = JSON.parse(localStorage.getItem('dm_day_' + TODAY_KEY) || 'null') || {foot:0, urine:0};
+let appts = JSON.parse(localStorage.getItem('dm_appts') || '[]');
+const DAILY_GOAL = 5;
+
+// ── SETUP (first time) ──
+function finishSetup() {
+  const name = document.getElementById('setupClinic').value.trim();
+  if (!name) { alert('נא להזין שם מרפאה'); return; }
+  settings.clinicName = name;
+  settings.monthlyFoot = parseInt(document.getElementById('setupGoalFoot').value) || 0;
+  settings.monthlyUrine = parseInt(document.getElementById('setupGoalUrine').value) || 0;
+  settings.clinicId = name.replace(/\s+/g,'_') + '_' + Date.now();
+  localStorage.setItem('dm_settings', JSON.stringify(settings));
+  document.getElementById('setupScreen').style.display = 'none';
+  applySettings();
+  syncReport();
+}
+
+if (settings.clinicName) {
+  document.getElementById('setupScreen').style.display = 'none';
+  applySettings();
+  syncReport();
+}
+
+// ── SETTINGS ──
+function toggleSettings() {
+  const p = document.getElementById('settingsPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (p.style.display === 'block') {
+    document.getElementById('clinicName').value = settings.clinicName || '';
+    document.getElementById('monthlyFoot').value = settings.monthlyFoot || '';
+    document.getElementById('monthlyUrine').value = settings.monthlyUrine || '';
+  }
+}
+
+function saveSettings() {
+  settings.clinicName = document.getElementById('clinicName').value.trim();
+  settings.monthlyFoot = parseInt(document.getElementById('monthlyFoot').value) || 0;
+  settings.monthlyUrine = parseInt(document.getElementById('monthlyUrine').value) || 0;
+  localStorage.setItem('dm_settings', JSON.stringify(settings));
+  document.getElementById('settingsPanel').style.display = 'none';
+  applySettings();
+  showToast('✅ הגדרות נשמרו');
+}
+
+function applySettings() {
+  document.getElementById('clinicTitle').textContent =
+    settings.clinicName ? 'היום שלי – ' + settings.clinicName : 'היום שלי – מרפאת סוכרת';
+  document.getElementById('monthFootGoal').textContent = settings.monthlyFoot || '–';
+  document.getElementById('monthUrineGoal').textContent = settings.monthlyUrine || '–';
+  renderMonthly();
+}
+
+// ── COUNTERS ──
+function change(field, delta) {
+  state[field] = Math.max(0, state[field] + delta);
+  saveState();
+  renderCounters();
+  renderMonthly();
+  if (delta > 0) showToast(field === 'foot' ? '🦶 נרשמה בדיקת כף רגל' : '🧪 נרשמה בדיקת מיקרואלבומין');
+}
+
+function saveState() {
+  localStorage.setItem('dm_day_' + TODAY_KEY, JSON.stringify(state));
+}
+
+function renderCounters() {
+  ['foot','urine'].forEach(f => {
+    const val = state[f];
+    const pct = Math.min(val / DAILY_GOAL, 1);
+    document.getElementById('num-' + f).textContent = val;
+    document.getElementById('card-' + f).classList.toggle('active', val > 0);
+    const r = 8, circ = 2 * Math.PI * r;
+    const color = pct >= 1 ? '#15803D' : pct >= 0.5 ? '#0B7B6E' : '#D97706';
+    document.getElementById('ring-' + f).innerHTML = `<svg viewBox="0 0 22 22" style="width:22px;height:22px;transform:rotate(-90deg)">
+      <circle cx="11" cy="11" r="${r}" fill="none" stroke="#E2E8F0" stroke-width="3"/>
+      <circle cx="11" cy="11" r="${r}" fill="none" stroke="${color}" stroke-width="3"
+        stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-pct)}" stroke-linecap="round"/>
+    </svg>`;
+  });
+}
+
+// ── MONTHLY ──
+function renderMonthly() {
+  let tf = state.foot || 0, tu = state.urine || 0;
+  for (let d = 1; d <= 31; d++) {
+    const key = MONTH_KEY + '-' + String(d).padStart(2,'0');
+    if (key === TODAY_KEY) continue;
+    const s = JSON.parse(localStorage.getItem('dm_day_' + key) || 'null');
+    if (s) { tf += s.foot||0; tu += s.urine||0; }
+  }
+  document.getElementById('monthFootNum').textContent = tf;
+  document.getElementById('monthUrineNum').textContent = tu;
+  const gf = settings.monthlyFoot||0, gu = settings.monthlyUrine||0;
+  document.getElementById('monthFootBar').style.width = gf ? Math.min(100,Math.round(tf/gf*100))+'%' : '0%';
+  document.getElementById('monthUrineBar').style.width = gu ? Math.min(100,Math.round(tu/gu*100))+'%' : '0%';
+}
+
+// ── SYNC (shared storage via localStorage key shared by export) ──
+// We use a simple approach: each clinic stores a report object,
+// and the manager page reads all known clinic IDs.
+function buildReport() {
+  let tf = state.foot||0, tu = state.urine||0;
+  for (let d = 1; d <= 31; d++) {
+    const key = MONTH_KEY + '-' + String(d).padStart(2,'0');
+    if (key === TODAY_KEY) continue;
+    const s = JSON.parse(localStorage.getItem('dm_day_' + key) || 'null');
+    if (s) { tf += s.foot||0; tu += s.urine||0; }
+  }
+  return {
+    clinicName: settings.clinicName,
+    clinicId: settings.clinicId,
+    month: MONTH_KEY,
+    todayFoot: state.foot||0,
+    todayUrine: state.urine||0,
+    monthFoot: tf,
+    monthUrine: tu,
+    goalFoot: settings.monthlyFoot||0,
+    goalUrine: settings.monthlyUrine||0,
+    lastUpdate: new Date().toISOString()
+  };
+}
+
+async function syncReport() {
+  if (!settings.clinicId) return;
+  const report = buildReport();
+  // Store in localStorage under a shared key format
+  // The manager page on same device can read this, or nurse exports CSV
+  localStorage.setItem('dm_report_' + settings.clinicId, JSON.stringify(report));
+  // Register this clinic ID in a master list
+  let clinicIds = JSON.parse(localStorage.getItem('dm_all_clinics') || '[]');
+  if (!clinicIds.includes(settings.clinicId)) {
+    clinicIds.push(settings.clinicId);
+    localStorage.setItem('dm_all_clinics', JSON.stringify(clinicIds));
+  }
+  document.getElementById('syncStatus').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── APPOINTMENTS ──
+function addAppt() {
+  const type = document.getElementById('apptType').value;
+  const name = document.getElementById('apptName').value.trim();
+  appts.push({id: Date.now(), type, name});
+  document.getElementById('apptName').value = '';
+  localStorage.setItem('dm_appts', JSON.stringify(appts));
+  renderAppts();
+  showToast('✅ נוסף לתזמון מחר');
+}
+
+function removeAppt(id) {
+  appts = appts.filter(a => a.id !== id);
+  localStorage.setItem('dm_appts', JSON.stringify(appts));
+  renderAppts();
+}
+
+function renderAppts() {
+  const list = document.getElementById('apptList');
+  if (!appts.length) { list.innerHTML = '<li class="empty-appt">עדיין לא תזמנת בדיקות למחר</li>'; return; }
+  const labels = {foot:'🦶 כף רגל', urine:'🧪 מיקרואלבומין'};
+  list.innerHTML = appts.map(a => `<li class="appt-item ${a.type}">
+    <span class="appt-tag">${labels[a.type]}</span>
+    <span class="appt-name">${a.name||'מטופל'}</span>
+    <button class="del-btn" onclick="removeAppt(${a.id})">✕</button>
+  </li>`).join('');
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  const days = [];
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const s = JSON.parse(localStorage.getItem('dm_day_'+key)||'null');
+    if (s) days.push({date: d.toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric'}), ...s});
+  }
+  if (!days.length) { container.innerHTML = '<div class="no-history">עוד אין היסטוריה – תתחילי לסמן ביצועים היום 💪</div>'; return; }
+  container.innerHTML = days.map(d => `<div class="history-row">
+    <span class="history-date">${d.date}</span>
+    <div class="history-nums">
+      <span class="h-num h-foot">🦶 ${d.foot}</span>
+      <span class="h-num h-urine">🧪 ${d.urine}</span>
+    </div>
+  </div>`).join('');
+}
+
+// ── END DAY ──
+function endDay() {
+  saveState();
+  syncReport();
+  showToast('✔ יום הסתיים ונשמר! כל הכבוד 🌟');
+  setTimeout(renderHistory, 500);
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+renderCounters();
+renderAppts();
+renderHistory();
+renderMonthly();
+
+document.getElementById('apptName').addEventListener('keydown', e => { if (e.key==='Enter') addAppt(); });
+</script>
+</body>
+</html>
